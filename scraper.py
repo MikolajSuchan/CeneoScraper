@@ -1,5 +1,17 @@
-import requests
+import requests,json
 from bs4 import BeautifulSoup
+
+def extract_tag(ancestor,selector=None,attribute=None,return_list=False):
+    try:
+        if return_list:
+            return [tag.text.strip() for tag in ancestor.select(selector)]
+        if not selector and attribute:
+            return ancestor[attribute]
+        if attribute:
+            return ancestor.select_one(selector)[attribute].strip()
+        return ancestor.select_one(selector).text.strip()
+    except (AttributeError,TypeError):
+        return None
 
 #product_code=input("Podaj kod produktu: ")
 
@@ -12,17 +24,20 @@ all_opinions=[]
 
 for opinion in opinions:
     single_opinion={
-        "opinion_id":opinion["data-entry-id"],
-        "author":opinion.select_one("span.user-post__author-name").text.strip(),
-        "recomendation":opinion.select_one("span.user-post__author-recomedation>em").text.strip(),
-        "rating":opinion.select_one("span.user-post__score-count").text.strip(),
-        "verified":opinion.select_one("div.review-pz").text.strip(),
-        "post_date":opinion.select_one("span.user-post_published>time:nth-child(1)[")["datatime"].strip(),
-        "purchase_date":opinion.select_one("span.user-post_published>time:nth-child(2)[")["datatime"].strip(),
-        "vote_up":opinion.select_one("").text.strip(),
-        "vote_down":opinion.select_one("").text.strip(),
-        "content":opinion.select_one("").text.strip(),
-        "cons":opinion.select_one("").text.strip(),
-        "pros":opinion.select_one("").text.strip(),
+        "opinion_id":extract_tag(opinion,None,"data-entry-id"),
+        "author":extract_tag(opinion,"span.user-post__author-name"),
+        "recomendation":extract_tag(opinion,"span.user-post__author-recomedation>em"),
+        "rating":extract_tag(opinion,"span.user-post__score-count"),
+        "verified":extract_tag(opinion,"div.review-pz"),
+        "post_date":extract_tag(opinion,"span.user-post_published>time:nth-child(1)","datatime"),
+        "purchase_date":extract_tag(opinion,"span.user-post_published>time:nth-child(2)","datatime"),
+        "vote_up":extract_tag(opinion,"button.vote-yes","data-total-vote"),
+        "vote_down":extract_tag(opinion,"button.vote-no","data-total-vote"),
+        "content":extract_tag(opinion,"div.user-post__text"),
+        "cons": extract_tag(opinion,"div.review-feature__title--negatives ~ div.review-feature__item",None,True),
+        "pros": extract_tag(opinion,"div.review-feature__title--positives ~ div.review-feature__item",None,True),
     }
-    print(type(opinion))
+    all_opinions.append(single_opinion)
+
+with open(f"./opinions/{product_code}.json","w",encoding="UTF-8")as jf:
+    json.dump(all_opinions,jf,indent=4,ensure_ascii=False)
