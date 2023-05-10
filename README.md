@@ -17,5 +17,10 @@
 | lista zalet | pros | div.review-feature\_\_title--positives ~ div.review-feature\_\_item |
 
 ## Wykorzystane biblioteki
-- BeautifulSoup4
-- Requests
+-Requests
+-BeautifulSoup4
+-Json
+-Os
+-Pandas
+-Numpy
+-Matplolib
